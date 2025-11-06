@@ -4,6 +4,8 @@ package edu.seg2105.edu.server.backend;
 // license found at www.lloseng.com 
 
 
+import java.io.IOException;
+
 import ocsf.server.*;
 
 /**
@@ -84,6 +86,61 @@ public class EchoServer extends AbstractServer
 	  System.out.println(client+" has disconnected from the server.");
 	  super.clientDisconnected(client);
   }
+  
+  public void handleMessageFromServerUI(String message) throws IOException {
+  
+    if(message.startsWith("#")) {
+    	handleCommand(message);
+    }
+    else {
+    	System.out.println("SERVER MSG> " + message);
+    	this.sendToAllClients("SERVER MSG> " + message);
+    }		
+  }
+  
+  private void handleCommand(String command) throws IOException {
+	  if(command.equals("#quit")) {
+		  quit();
+	  }
+	  else if(command.equals("#stop")) {
+		  stopListening();
+	  }
+	  else if(command.equals("#close")) {
+		  close();
+	  }
+	  else if(command.startsWith("#setport")) {
+		  if(!isListening() && (getNumberOfClients() == 0)) {
+			  int port = Integer.parseInt(command.substring(8).trim());
+			  setPort(port);
+		  }
+		  else {
+			  System.out.println("The server must be closed to set port.");
+		  }
+	  }
+	  else if(command.equals("#getport")) {
+		  System.out.println(Integer.toString(getPort()));
+	  }
+	  else if(command.equals("#start")) {
+		  if(!isListening()) {
+			  listen();
+		  }
+		  else {
+			  System.out.println("The server must be stopped to start listening for new clients.");
+		  }
+	  }
+  }
+  
+  public void quit()
+  {
+    try
+    {
+      close();
+    }
+    catch(IOException e) {}
+    System.exit(0);
+  }
+  
+  
   
   //Class methods ***************************************************
   

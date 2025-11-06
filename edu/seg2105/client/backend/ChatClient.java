@@ -71,7 +71,11 @@ public class ChatClient extends AbstractClient
   {
     try
     {
-      sendToServer(message);
+      if(message.startsWith("#")) {
+    	  handleCommand(message);
+      }
+      else
+    	sendToServer(message);
     }
     catch(IOException e)
     {
@@ -79,6 +83,47 @@ public class ChatClient extends AbstractClient
         ("Could not send message to server.  Terminating client.");
       quit();
     }
+  }
+  
+  private void handleCommand(String command) throws IOException {
+	  if(command.equals("#quit")) {
+		  quit();
+	  }
+	  else if(command.equals("#logoff")) {
+		  closeConnection();
+	  }
+	  else if(command.startsWith("#sethost")) {
+		  if(isConnected()) {
+			  clientUI.display("You must be logged off to set host.");
+		  }
+		  else {
+			  String host = command.substring(8).trim();
+			  setHost(host);
+		  }
+	  }
+	  else if(command.startsWith("#setport")) {
+		  if(isConnected()) {
+			  clientUI.display("You must be logged off to set port.");
+		  }
+		  else {
+			  int port = Integer.parseInt(command.substring(8).trim());
+			  setPort(port);
+		  }
+	  }
+	  else if(command.equals("#gethost")) {
+		  clientUI.display(getHost());
+	  }
+	  else if(command.equals("#getport")) {
+		  clientUI.display(Integer.toString(getPort()));
+	  }
+	  else if(command.equals("#login")) {
+		  if(isConnected()) {
+			  clientUI.display("You must be logged off to connect to the server.");
+		  }
+		  else {
+			  openConnection();
+		  }
+	  }
   }
   
   /**
