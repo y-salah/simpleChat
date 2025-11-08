@@ -20,6 +20,8 @@ import ocsf.server.*;
 public class EchoServer extends AbstractServer 
 {
   //Class variables *************************************************
+	
+	String loginKey = "loginID";
   
   /**
    * The default port to listen on.
@@ -50,8 +52,30 @@ public class EchoServer extends AbstractServer
   public void handleMessageFromClient
     (Object msg, ConnectionToClient client)
   {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+    System.out.println("Message received: " + msg + " from " + client.getInfo(loginKey)+".");
+    
+    String msgStr = (String) msg;
+    if(msgStr.startsWith("#login")) {
+    	if(client.getInfo(loginKey) != null) {
+    		try
+    		{
+    			client.sendToClient("#login command is only allowed as the first command received after connecting.");
+    			client.close();
+    		}
+    		catch(IOException e)
+    		{
+    		}
+    	}
+    	else {
+    		String loginID = msgStr.substring(6).trim();
+    		client.setInfo(loginKey,loginID);
+    		System.out.println(loginID+" has logged on.");
+    		this.sendToAllClients(loginID+" has logged on.");
+    	}
+    }
+    else {
+    	this.sendToAllClients(client.getInfo(loginKey)+" "+msg);
+    }
   }
     
   /**
@@ -76,14 +100,14 @@ public class EchoServer extends AbstractServer
   
   @Override
   protected void clientConnected(ConnectionToClient client) {
-	  System.out.println(client+" has connected to the server.");
+	  System.out.println("A new client has connected to the server.");
   }
   
   @Override
   synchronized protected void clientDisconnected(ConnectionToClient client) {
 	  // Since we don't track which ID belongs to this client directly,
 	  // remove by value.
-	  System.out.println(client+" has disconnected from the server.");
+	  System.out.println(client.getInfo(loginKey)+" has disconnected.");
 	  super.clientDisconnected(client);
   }
   
